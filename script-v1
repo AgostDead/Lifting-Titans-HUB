@@ -1,0 +1,212 @@
+-- ============================================
+--  LIFTING TITANS HUB | PainKillersUi Edition
+--  Created by Angry66gsjjd (Clan: PainKillers)
+-- ============================================
+
+local PainKillersUi = loadstring(game:HttpGet("https://raw.githubusercontent.com/Angry66gsjjd/uilib/main/PainKillersUi"))()
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+-- ============================================
+--  INTERFACE
+-- ============================================
+local Window = PainKillersUi:CreateWindow({
+    Title = "Lifting Titans | Hub",
+    Theme = "Dark",
+    Size = UDim2.fromOffset(550, 480),
+})
+
+-- ============================================
+--  TAB: MAIN (AUTO-FARM & SELL)
+-- ============================================
+local MainTab = Window:Tab({ Title = "Main" })
+MainTab:Section({ Title = "Auto-Farm & Actions" })
+
+-- Farm Speed Slider
+local farmSpeed = 0.05
+MainTab:Slider({
+    Title = "Farm Speed",
+    Value = { Min = 0.01, Max = 0.5, Default = 0.05 },
+    Callback = function(val) farmSpeed = val end
+})
+
+-- Auto Strength Toggle
+local isFarming = false
+local farmConnection = nil
+
+MainTab:Toggle({
+    Title = "Auto Strength (OnLift)",
+    Value = false,
+    Callback = function(state)
+        isFarming = state
+        if isFarming then
+            if farmConnection then farmConnection:Disconnect() end
+            farmConnection = RunService.Heartbeat:Connect(function()
+                task.wait(farmSpeed)
+                if not isFarming then return end
+                
+                for i = 1, 3 do
+                    pcall(function()
+                        ReplicatedStorage.Remotes.OnLift:FireServer()
+                    end)
+                end
+            end)
+            Window:Notify({Title = "Auto Strength", Content = "Enabled", Duration = 3})
+        else
+            if farmConnection then farmConnection:Disconnect() farmConnection = nil end
+            Window:Notify({Title = "Auto Strength", Content = "Disabled", Duration = 3})
+        end
+    end,
+})
+
+-- Sell Button
+MainTab:Button({
+    Title = "Sell All",
+    Callback = function()
+        pcall(function()
+            ReplicatedStorage.Remotes.Sell:FireServer()
+            Window:Notify({Title = "Sell", Content = "Successfully sold!", Duration = 3})
+        end)
+    end,
+})
+
+-- ============================================
+--  TAB: PLAYER (PHYSICS)
+-- ============================================
+local PlayerTab = Window:Tab({ Title = "Player" })
+PlayerTab:Section({ Title = "Physics & Movement" })
+
+-- WalkSpeed Slider
+PlayerTab:Slider({
+    Title = "WalkSpeed",
+    Value = { Min = 16, Max = 500, Default = 16 },
+    Callback = function(value)
+        local char = LocalPlayer.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then hum.WalkSpeed = value end
+        end
+    end
+})
+
+-- Noclip Toggle
+local noclip = false
+local noclipConnection = nil
+PlayerTab:Toggle({
+    Title = "Noclip",
+    Value = false,
+    Callback = function(state)
+        noclip = state
+        if noclip then
+            noclipConnection = RunService.Stepped:Connect(function()
+                if noclip and LocalPlayer.Character then
+                    for _, v in pairs(LocalPlayer.Character:GetDescendants()) do
+                        if v:IsA("BasePart") then v.CanCollide = false end
+                    end
+                end
+            end)
+        else
+            if noclipConnection then noclipConnection:Disconnect() end
+        end
+    end
+})
+
+-- Fly Speed Slider
+local isFlying = false
+local flyConnection = nil
+local flySpeed = 50
+
+PlayerTab:Slider({
+    Title = "Fly Speed",
+    Value = { Min = 10, Max = 200, Default = 50 },
+    Callback = function(value) flySpeed = value end
+})
+
+-- Fly Toggle
+PlayerTab:Toggle({
+    Title = "Fly",
+    Value = false,
+    Callback = function(state)
+        isFlying = state
+        local char = LocalPlayer.Character
+        if not char then return end
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local hum = char:FindFirstChildOfClass("Humanoid")
+        
+        if isFlying and hrp and hum then
+            local bv = Instance.new("BodyVelocity")
+            bv.Name = "FlyBV"
+            bv.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+            bv.Velocity = Vector3.zero
+            bv.Parent = hrp
+            
+            flyConnection = RunService.RenderStepped:Connect(function()
+                if not isFlying or not hrp or not hum then return end
+                local camera = workspace.CurrentCamera
+                local moveDir = hum.MoveDirection
+                local upDown = 0
+                if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.Space) then upDown = 1 end
+                if game:GetService("UserInputService"):IsKeyDown(Enum.KeyCode.LeftShift) then upDown = -1 end
+                bv.Velocity = (camera.CFrame.LookVector * moveDir.Z + camera.CFrame.RightVector * moveDir.X + Vector3.new(0, upDown, 0)) * flySpeed
+            end)
+        else
+            if flyConnection then flyConnection:Disconnect() end
+            if hrp then
+                local bv = hrp:FindFirstChild("FlyBV")
+                if bv then bv:Destroy() end
+            end
+        end
+    end
+})
+
+-- ============================================
+--  TAB: OTHER
+-- ============================================
+local OtherTab = Window:Tab({ Title = "Other" })
+OtherTab:Section({ Title = "Useful Scripts" })
+
+OtherTab:Button({
+    Title = "Dex++ (Explorer)",
+    Callback = function() pcall(function() loadstring(game:HttpGet("https://github.com/AZYsGithub/DexPlusPlus/releases/latest/download/out.lua"))() end) end,
+})
+OtherTab:Button({
+    Title = "Infinite Yield",
+    Callback = function()
+        task.spawn(function()
+            pcall(function() getgenv().IY_LOADED = nil end)
+            local src = game:HttpGet("https://raw.githubusercontent.com/EdgeY/infiniteyield/master/source")
+            local chunk = loadstring(src)
+            if chunk then pcall(chunk) end
+        end)
+    end,
+})
+OtherTab:Button({
+    Title = "Anti-AFK",
+    Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/Anti-afk/main/antiafkbyhassanxzyn"))() end) end,
+})
+
+-- ============================================
+--  TAB: DESCRIPTIONS & CREDITS
+-- ============================================
+local DescTab = Window:Tab({ Title = "Descriptions" })
+DescTab:Section({ Title = "Script Information" })
+
+DescTab:Paragraph({
+    Title = "Author",
+    Desc = "Angry66gsjjd"
+})
+
+DescTab:Paragraph({
+    Title = "Clan",
+    Desc = "PainKillers"
+})
+
+DescTab:Paragraph({
+    Title = "License",
+    Desc = "This script is Open Source. You are free to use, modify, and share it as long as you give proper credit to the original author."
+})
+
+print("[Lifting Titans Hub] Loaded with PainKillersUi. Author: Angry66gsjjd | Clan: PainKillers")
