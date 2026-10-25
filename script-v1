@@ -1,9 +1,10 @@
 -- ============================================
---  LIFTING TITANS HUB | PainKillersUi Edition
+--  LIFTING TITANS HUB | PainKillersUI Edition
 --  Created by Angry66gsjjd (Clan: PainKillers)
 -- ============================================
 
-local PainKillersUi = loadstring(game:HttpGet("https://raw.githubusercontent.com/Angry66gsjjd/uilib/main/PainKillersUi"))()
+-- ИСПОЛЬЗУЕМ ТВОЮ БИБЛИОТЕКУ
+local PainKillersUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/Angry66gsjjd/My-Library/main/dist/main.lua"))()
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -13,23 +14,29 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- ============================================
 --  INTERFACE
 -- ============================================
-local Window = PainKillersUi:CreateWindow({
+local Window = PainKillersUI:CreateWindow({
     Title = "Lifting Titans | Hub",
-    Theme = "Dark",
+    Icon = "dumbbell",
+    Author = "Angry66gsjjd",
+    Folder = "LiftingTitans",
     Size = UDim2.fromOffset(550, 480),
+    Theme = "Dark",
+    ToggleKey = Enum.KeyCode.RightShift, -- Кнопка открытия (Правый Shift)
 })
 
 -- ============================================
 --  TAB: MAIN (AUTO-FARM & SELL)
 -- ============================================
-local MainTab = Window:Tab({ Title = "Main" })
+local MainTab = Window:Tab({ Title = "Main", Icon = "swords" })
 MainTab:Section({ Title = "Auto-Farm & Actions" })
 
 -- Farm Speed Slider
 local farmSpeed = 0.05
 MainTab:Slider({
     Title = "Farm Speed",
+    Icon = "zap",
     Value = { Min = 0.01, Max = 0.5, Default = 0.05 },
+    Step = 0.01,
     Callback = function(val) farmSpeed = val end
 })
 
@@ -39,6 +46,7 @@ local farmConnection = nil
 
 MainTab:Toggle({
     Title = "Auto Strength (OnLift)",
+    Icon = "flame",
     Value = false,
     Callback = function(state)
         isFarming = state
@@ -54,10 +62,10 @@ MainTab:Toggle({
                     end)
                 end
             end)
-            Window:Notify({Title = "Auto Strength", Content = "Enabled", Duration = 3})
+            PainKillersUI:Notify({Title = "Auto Strength", Content = "Enabled", Duration = 3, Icon = "play"})
         else
             if farmConnection then farmConnection:Disconnect() farmConnection = nil end
-            Window:Notify({Title = "Auto Strength", Content = "Disabled", Duration = 3})
+            PainKillersUI:Notify({Title = "Auto Strength", Content = "Disabled", Duration = 3, Icon = "square"})
         end
     end,
 })
@@ -65,10 +73,11 @@ MainTab:Toggle({
 -- Sell Button
 MainTab:Button({
     Title = "Sell All",
+    Icon = "shopping-cart",
     Callback = function()
         pcall(function()
             ReplicatedStorage.Remotes.Sell:FireServer()
-            Window:Notify({Title = "Sell", Content = "Successfully sold!", Duration = 3})
+            PainKillersUI:Notify({Title = "Sell", Content = "Successfully sold!", Duration = 3, Icon = "check"})
         end)
     end,
 })
@@ -76,13 +85,15 @@ MainTab:Button({
 -- ============================================
 --  TAB: PLAYER (PHYSICS)
 -- ============================================
-local PlayerTab = Window:Tab({ Title = "Player" })
+local PlayerTab = Window:Tab({ Title = "Player", Icon = "user" })
 PlayerTab:Section({ Title = "Physics & Movement" })
 
 -- WalkSpeed Slider
 PlayerTab:Slider({
     Title = "WalkSpeed",
+    Icon = "zap",
     Value = { Min = 16, Max = 500, Default = 16 },
+    Step = 1,
     Callback = function(value)
         local char = LocalPlayer.Character
         if char then
@@ -97,6 +108,7 @@ local noclip = false
 local noclipConnection = nil
 PlayerTab:Toggle({
     Title = "Noclip",
+    Icon = "ghost",
     Value = false,
     Callback = function(state)
         noclip = state
@@ -121,13 +133,17 @@ local flySpeed = 50
 
 PlayerTab:Slider({
     Title = "Fly Speed",
+    Icon = "wind",
     Value = { Min = 10, Max = 200, Default = 50 },
+    Step = 1,
     Callback = function(value) flySpeed = value end
 })
 
 -- Fly Toggle
 PlayerTab:Toggle({
     Title = "Fly",
+    Desc = "Space - up, Shift - down",
+    Icon = "plane",
     Value = false,
     Callback = function(state)
         isFlying = state
@@ -165,15 +181,17 @@ PlayerTab:Toggle({
 -- ============================================
 --  TAB: OTHER
 -- ============================================
-local OtherTab = Window:Tab({ Title = "Other" })
+local OtherTab = Window:Tab({ Title = "Other", Icon = "wrench" })
 OtherTab:Section({ Title = "Useful Scripts" })
 
 OtherTab:Button({
     Title = "Dex++ (Explorer)",
+    Icon = "code",
     Callback = function() pcall(function() loadstring(game:HttpGet("https://github.com/AZYsGithub/DexPlusPlus/releases/latest/download/out.lua"))() end) end,
 })
 OtherTab:Button({
     Title = "Infinite Yield",
+    Icon = "terminal",
     Callback = function()
         task.spawn(function()
             pcall(function() getgenv().IY_LOADED = nil end)
@@ -185,13 +203,14 @@ OtherTab:Button({
 })
 OtherTab:Button({
     Title = "Anti-AFK",
+    Icon = "clock",
     Callback = function() pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/Anti-afk/main/antiafkbyhassanxzyn"))() end) end,
 })
 
 -- ============================================
 --  TAB: DESCRIPTIONS & CREDITS
 -- ============================================
-local DescTab = Window:Tab({ Title = "Descriptions" })
+local DescTab = Window:Tab({ Title = "Descriptions", Icon = "info" })
 DescTab:Section({ Title = "Script Information" })
 
 DescTab:Paragraph({
@@ -209,4 +228,4 @@ DescTab:Paragraph({
     Desc = "This script is Open Source. You are free to use, modify, and share it as long as you give proper credit to the original author."
 })
 
-print("[Lifting Titans Hub] Loaded with PainKillersUi. Author: Angry66gsjjd | Clan: PainKillers")
+print("[Lifting Titans Hub] Loaded with PainKillersUI.")
